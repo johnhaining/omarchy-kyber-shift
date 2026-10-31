@@ -45,7 +45,7 @@ Files:
 
 ## Keybinding
 
-To flip between light and dark on demand, bind the `toggle` command in `~/.config/hypr/bindings.lua`:
+To flip between light and dark on demand, bind the `toggle` command to any free key (`SUPER + ALT + L` is only an example) in `~/.config/hypr/bindings.lua`:
 
 ```lua
 o.bind("SUPER + ALT + L", "Toggle light/dark theme", "python3 ~/.config/omarchy/plugins/johnhaining.kyber-shift/scheduler.py toggle")
@@ -62,7 +62,7 @@ python3 ~/.config/omarchy/plugins/johnhaining.kyber-shift/scheduler.py uninstall
 omarchy plugin remove johnhaining.kyber-shift
 ```
 
-Remove the `SUPER + ALT + L` line from `bindings.lua` as well, or it will point at a script that no longer exists. The theme you are using stays as it is.
+Remove the Kyber Shift line from `bindings.lua` as well, or it will point at a script that no longer exists. The theme you are using stays as it is.
 
 ## Command line
 
