@@ -41,6 +41,16 @@ Files:
 | `~/.config/omarchy/theme-scheduler/config.json` | your settings |
 | `~/.local/state/omarchy/theme-scheduler/state.json` | last switch, daily picks, last error |
 
+## Keybinding
+
+To flip between light and dark on demand, bind the `toggle` command in `~/.config/hypr/bindings.lua`:
+
+```lua
+o.bind("SUPER + ALT + L", "Toggle light/dark theme", "python3 ~/.config/omarchy/plugins/johnhaining.theme-scheduler/scheduler.py toggle")
+```
+
+Then run `hyprctl reload` and `hyprctl configerrors`. Pick any free combination; `omarchy menu keybindings --print` lists the taken ones. The toggle holds until the next sunrise or sunset, the same as the button in the picker.
+
 ## Command line
 
 The scheduler runs on its own, but you can call it directly:
