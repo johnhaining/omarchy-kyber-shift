@@ -304,7 +304,29 @@ def apply_theme(slug):
         return False, str(error)
     if done.returncode != 0:
         return False, (done.stderr or done.stdout).strip() or f"exit {done.returncode}"
+    set_color_scheme(slug)
     return True, ""
+
+
+def set_color_scheme(slug):
+    """Match the system light/dark preference to the theme, so Chromium and web pages follow.
+
+    Omarchy's theme set does not do this, and Chromium uses the system setting
+    (BrowserColorScheme "device"). A failure here is not a failed theme switch.
+    """
+    mode = "dark"
+    for root in theme_dirs():
+        if (root / slug).is_dir():
+            mode = theme_mode(root / slug)
+    command = [
+        os.environ.get("KYBER_SHIFT_GSETTINGS", "gsettings"),
+        "set", "org.gnome.desktop.interface", "color-scheme",
+        "prefer-light" if mode == "light" else "prefer-dark",
+    ]
+    try:
+        subprocess.run(command, capture_output=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
 
 
 # -------------------------------------------------------------- commands

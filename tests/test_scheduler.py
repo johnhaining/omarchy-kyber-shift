@@ -28,6 +28,10 @@ class SandboxCase(unittest.TestCase):
         fake = self.tmp / "fake-omarchy"
         fake.write_text(f'#!/bin/sh\necho "$@" >> "{self.omarchy_log}"\n')
         fake.chmod(0o755)
+        self.gsettings_log = self.tmp / "gsettings.log"
+        fake_gsettings = self.tmp / "fake-gsettings"
+        fake_gsettings.write_text(f'#!/bin/sh\necho "$@" >> "{self.gsettings_log}"\n')
+        fake_gsettings.chmod(0o755)
 
         make_theme(self.tmp / "omarchy", "tokyo-night", "dark")
         make_theme(self.tmp / "omarchy", "rose-pine", "dark")
@@ -40,6 +44,7 @@ class SandboxCase(unittest.TestCase):
             "XDG_STATE_HOME": str(self.tmp / "state"),
             "OMARCHY_PATH": str(self.tmp / "omarchy"),
             "OMARCHY_CMD": str(fake),
+            "KYBER_SHIFT_GSETTINGS": str(fake_gsettings),
         }
         patcher = mock.patch.dict(os.environ, self.env)
         patcher.start()
@@ -218,6 +223,28 @@ class RandomModeTests(SandboxCase):
     def test_uninstalled_pool_entries_are_ignored(self):
         cfg = scheduler.normalize_config({"mode": "random", "darkPool": ["gone"], "dark": "tokyo-night"}, [])
         self.assertEqual(scheduler.choose_theme(cfg, "dark", "k", {}, {"tokyo-night"}), "tokyo-night")
+
+
+class ColorSchemeTests(SandboxCase):
+    def scheme_calls(self):
+        if not self.gsettings_log.exists():
+            return []
+        return [line.split()[-1] for line in self.gsettings_log.read_text().splitlines()]
+
+    def test_light_theme_sets_prefer_light_and_dark_sets_prefer_dark(self):
+        self.write_config()
+        with mock.patch.object(scheduler, "datetime", wraps=datetime) as fake:
+            fake.now.return_value = datetime(2026, 10, 31, 8, 0).astimezone()
+            scheduler.run_tick()
+            fake.now.return_value = datetime(2026, 10, 31, 20, 0).astimezone()
+            scheduler.run_tick()
+        self.assertEqual(self.scheme_calls(), ["prefer-light", "prefer-dark"])
+
+    def test_failed_gsettings_does_not_fail_the_switch(self):
+        self.write_config()
+        os.environ["KYBER_SHIFT_GSETTINGS"] = "/bin/false"
+        self.addCleanup(os.environ.__setitem__, "KYBER_SHIFT_GSETTINGS", self.env["KYBER_SHIFT_GSETTINGS"])
+        self.assertEqual(scheduler.run_tick()["result"], "applied")
 
 
 class UninstallTests(SandboxCase):
