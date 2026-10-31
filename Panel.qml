@@ -10,8 +10,8 @@ import qs.Ui
 // the next switch or until "Apply now" is pressed.
 Panel {
   id: root
-  moduleName: "johnhaining.theme-scheduler"
-  ipcTarget: "johnhaining.theme-scheduler"
+  moduleName: "johnhaining.kyber-shift"
+  ipcTarget: "johnhaining.kyber-shift"
 
   property Item anchorItem: null
 
@@ -34,7 +34,7 @@ Panel {
     try {
       data = JSON.parse(String(raw || ""))
     } catch (e) {
-      console.warn("theme-scheduler", "Could not read status", e)
+      console.warn("kyber-shift", "Could not read status", e)
       return
     }
     if (!data || typeof data !== "object") return
@@ -151,7 +151,7 @@ Panel {
 
     stderr: StdioCollector {
       waitForEnd: true
-      onStreamFinished: if (text.trim() !== "") console.warn("theme-scheduler", text.trim())
+      onStreamFinished: if (text.trim() !== "") console.warn("kyber-shift", text.trim())
     }
 
     onExited: {
@@ -166,7 +166,7 @@ Panel {
 
     stderr: StdioCollector {
       waitForEnd: true
-      onStreamFinished: if (text.trim() !== "") console.warn("theme-scheduler", text.trim())
+      onStreamFinished: if (text.trim() !== "") console.warn("kyber-shift", text.trim())
     }
 
     onExited: root.refresh()
@@ -177,7 +177,7 @@ Panel {
 
     stderr: StdioCollector {
       waitForEnd: true
-      onStreamFinished: if (text.trim() !== "") console.warn("theme-scheduler", text.trim())
+      onStreamFinished: if (text.trim() !== "") console.warn("kyber-shift", text.trim())
     }
 
     onExited: root.refresh()

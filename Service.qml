@@ -24,7 +24,7 @@ Item {
 
     stderr: StdioCollector {
       waitForEnd: true
-      onStreamFinished: if (text.trim() !== "") console.warn("theme-scheduler", text.trim())
+      onStreamFinished: if (text.trim() !== "") console.warn("kyber-shift", text.trim())
     }
   }
 }

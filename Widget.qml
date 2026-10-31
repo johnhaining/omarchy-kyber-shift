@@ -2,11 +2,11 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 
-// Bar button for the theme scheduler: a sun while the light theme is active,
+// Bar button for the Kyber Shift: a sun while the light theme is active,
 // a moon while the dark one is. Left click opens the picker.
 BarWidget {
   id: root
-  moduleName: "johnhaining.theme-scheduler"
+  moduleName: "johnhaining.kyber-shift"
 
   readonly property string periodKind: panelLoader.item ? panelLoader.item.periodKind : ""
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false

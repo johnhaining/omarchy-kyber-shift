@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "id": "johnhaining.theme-scheduler",
-  "name": "Theme scheduler",
+  "id": "johnhaining.kyber-shift",
+  "name": "Kyber Shift",
   "version": "0.1.0",
   "author": "John Haining",
   "description": "Switch Omarchy between a light and a dark theme at sunrise and sunset, or at fixed times, with an optional random pick each day.",
@@ -12,7 +12,7 @@
     "barWidget": "Widget.qml"
   },
   "barWidget": {
-    "displayName": "Theme scheduler",
+    "displayName": "Kyber Shift",
     "description": "Sun icon by day, moon by night. Click for the light/dark theme picker and schedule.",
     "category": "Appearance",
     "allowMultiple": false,

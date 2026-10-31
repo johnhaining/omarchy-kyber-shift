@@ -1,4 +1,4 @@
-# Omarchy theme scheduler
+# Kyber Shift
 
 An [Omarchy](https://omarchy.org/) shell plugin that switches between a light and a dark theme automatically. The switch happens at sunrise and sunset, or at fixed times you choose. Each day you can either keep one fixed pair or let it draw a random theme from a pool.
 
@@ -9,8 +9,8 @@ A sun icon in the top bar means the light theme is active, and a moon means the 
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/johnhaining/omarchy-theme-scheduler.git --enable --yes
-omarchy plugin enable johnhaining.theme-scheduler right
+omarchy plugin add https://github.com/johnhaining/omarchy-kyber-shift.git --enable --yes
+omarchy plugin enable johnhaining.kyber-shift right
 ```
 
 Then click the new icon in the top-right of the bar and choose your themes. Nothing changes until you do: an unconfigured plugin does not touch your theme.
@@ -40,15 +40,15 @@ Files:
 
 | Path | Purpose |
 |---|---|
-| `~/.config/omarchy/theme-scheduler/config.json` | your settings |
-| `~/.local/state/omarchy/theme-scheduler/state.json` | last switch, daily picks, last error |
+| `~/.config/omarchy/kyber-shift/config.json` | your settings |
+| `~/.local/state/omarchy/kyber-shift/state.json` | last switch, daily picks, last error |
 
 ## Keybinding
 
 To flip between light and dark on demand, bind the `toggle` command in `~/.config/hypr/bindings.lua`:
 
 ```lua
-o.bind("SUPER + ALT + L", "Toggle light/dark theme", "python3 ~/.config/omarchy/plugins/johnhaining.theme-scheduler/scheduler.py toggle")
+o.bind("SUPER + ALT + L", "Toggle light/dark theme", "python3 ~/.config/omarchy/plugins/johnhaining.kyber-shift/scheduler.py toggle")
 ```
 
 Then run `hyprctl reload` and `hyprctl configerrors`. Pick any free combination; `omarchy menu keybindings --print` lists the taken ones. The toggle holds until the next sunrise or sunset, the same as the button in the picker.
@@ -58,8 +58,8 @@ Then run `hyprctl reload` and `hyprctl configerrors`. Pick any free combination;
 Run this before `omarchy plugin remove`. It deletes the plugin's settings and state, and leaves everything else alone:
 
 ```bash
-python3 ~/.config/omarchy/plugins/johnhaining.theme-scheduler/scheduler.py uninstall
-omarchy plugin remove johnhaining.theme-scheduler
+python3 ~/.config/omarchy/plugins/johnhaining.kyber-shift/scheduler.py uninstall
+omarchy plugin remove johnhaining.kyber-shift
 ```
 
 Remove the `SUPER + ALT + L` line from `bindings.lua` as well, or it will point at a script that no longer exists. The theme you are using stays as it is.
@@ -69,8 +69,8 @@ Remove the `SUPER + ALT + L` line from `bindings.lua` as well, or it will point 
 The scheduler runs on its own, but you can call it directly:
 
 ```bash
-python3 ~/.config/omarchy/plugins/johnhaining.theme-scheduler/scheduler.py status
-python3 ~/.config/omarchy/plugins/johnhaining.theme-scheduler/scheduler.py apply
+python3 ~/.config/omarchy/plugins/johnhaining.kyber-shift/scheduler.py status
+python3 ~/.config/omarchy/plugins/johnhaining.kyber-shift/scheduler.py apply
 ```
 
 ## Tests

@@ -36,12 +36,12 @@ KEEP_PICKS = 14
 
 def config_path():
     base = os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config"
-    return Path(base) / "omarchy/theme-scheduler/config.json"
+    return Path(base) / "omarchy/kyber-shift/config.json"
 
 
 def state_path():
     base = os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state"
-    return Path(base) / "omarchy/theme-scheduler/state.json"
+    return Path(base) / "omarchy/kyber-shift/state.json"
 
 
 def theme_dirs():
