@@ -156,6 +156,40 @@ class TickTests(SandboxCase):
         self.assertIsNone(scheduler.read_json(scheduler.state_path()).get("applied"))
 
 
+class ToggleTests(SandboxCase):
+    def test_toggle_flips_and_holds_until_the_next_switch(self):
+        self.write_config()
+        with mock.patch.object(scheduler, "datetime", wraps=datetime) as fake:
+            fake.now.return_value = datetime(2026, 10, 31, 8, 0).astimezone()
+            scheduler.run_tick()
+            self.assertEqual(scheduler.status()["period"]["kind"], "light")
+
+            flipped = scheduler.toggle_theme()
+            self.assertEqual((flipped["result"], flipped["shown"], flipped["theme"]), ("toggled", "dark", "tokyo-night"))
+            self.assertTrue(scheduler.status()["manual"])
+
+            fake.now.return_value = datetime(2026, 10, 31, 9, 0).astimezone()
+            self.assertEqual(scheduler.run_tick()["result"], "unchanged")
+
+            flipped_back = scheduler.toggle_theme()
+            self.assertEqual(flipped_back["shown"], "light")
+            self.assertFalse(scheduler.status()["manual"])
+
+            fake.now.return_value = datetime(2026, 10, 31, 20, 0).astimezone()
+            self.assertEqual(scheduler.run_tick()["theme"], "tokyo-night")
+        self.assertEqual(self.applied_themes(), ["catppuccin-latte", "tokyo-night", "catppuccin-latte", "tokyo-night"])
+
+    def test_apply_now_respects_a_toggle(self):
+        self.write_config()
+        with mock.patch.object(scheduler, "datetime", wraps=datetime) as fake:
+            fake.now.return_value = datetime(2026, 10, 31, 8, 0).astimezone()
+            scheduler.toggle_theme()
+            self.assertEqual(scheduler.run_tick(force=True)["theme"], "tokyo-night")
+
+    def test_toggle_needs_configuration(self):
+        self.assertEqual(scheduler.toggle_theme(), {"result": "unconfigured"})
+
+
 class RandomModeTests(SandboxCase):
     def test_pick_is_stable_within_a_period_and_comes_from_the_pool(self):
         cfg = scheduler.normalize_config(

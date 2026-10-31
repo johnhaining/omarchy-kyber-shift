@@ -106,6 +106,12 @@ Panel {
     saveProc.running = true
   }
 
+  // Flip the theme on screen to the other period's. It holds until the next switch.
+  function toggleLightDark() {
+    if (toggleProc.running) return
+    toggleProc.running = true
+  }
+
   function applyNow() {
     if (applyProc.running) return
     applyProc.command = ["python3", root.scriptPath, "apply", JSON.stringify(config)]
@@ -152,6 +158,18 @@ Panel {
       if (root.savePending) root.runSave()
       else root.refresh()
     }
+  }
+
+  Process {
+    id: toggleProc
+    command: ["python3", root.scriptPath, "toggle"]
+
+    stderr: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: if (text.trim() !== "") console.warn("theme-scheduler", text.trim())
+    }
+
+    onExited: root.refresh()
   }
 
   Process {
@@ -400,6 +418,22 @@ Panel {
         text: root.config.mode === "random"
           ? "A random theme is drawn from each pool at every switch, so the pick changes each day."
           : "Changes take effect at the next switch. Apply now switches immediately."
+      }
+
+      Button {
+        visible: root.configured
+        text: root.periodKind === "light" ? "Switch to dark now" : "Switch to light now"
+        onClicked: root.toggleLightDark()
+      }
+
+      Text {
+        visible: root.configured && root.status.manual === true
+        width: parent.width
+        wrapMode: Text.WordWrap
+        color: Qt.darker(Commons.Color.popups.text, 1.4)
+        font.family: Style.font.family
+        font.pixelSize: Style.font.caption
+        text: "Held until the next " + (root.status.next && root.status.next.kind === "light" ? "sunrise" : "sunset") + "."
       }
 
       Button {

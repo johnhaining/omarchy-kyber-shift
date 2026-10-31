@@ -8,6 +8,7 @@ and `apply`. Standard library only.
   scheduler.py save <json>     store settings (does not change the theme)
   scheduler.py tick            apply the current period's theme if it has changed
   scheduler.py apply [json]    save settings if given, then apply the theme now
+  scheduler.py toggle          switch to the other period's theme until the next switch
 """
 
 import fcntl
@@ -257,6 +258,19 @@ def period_key(kind, start):
     return f"{kind}:{start.date().isoformat()}"
 
 
+def shown_kind(state, kind, key):
+    """The period on screen: the scheduled one unless a toggle holds the other."""
+    override = state.get("override") or {}
+    if override.get("key") == key and override.get("kind") in PERIODS:
+        return override["kind"]
+    return kind
+
+
+def pick_key(shown, scheduled_kind, key):
+    """Random picks are kept per period; a toggled-in period gets its own."""
+    return key if shown == scheduled_kind else f"{shown}:manual:{key}"
+
+
 # --------------------------------------------------------------- picking
 
 
@@ -312,14 +326,48 @@ def run_tick(force=False):
         if not force and applied.get("key") == key:
             return {"result": "unchanged", "theme": applied.get("theme")}
 
+        shown = shown_kind(state, kind, key)
         installed = {t["slug"] for t in themes}
-        slug = choose_theme(cfg, kind, key, state, installed)
+        slug = choose_theme(cfg, shown, pick_key(shown, kind, key), state, installed)
         ok, error = apply_theme(slug)
         if ok:
             state["applied"] = {"key": key, "theme": slug, "at": now.isoformat()}
         state["error"] = None if ok else error
         write_json(state_path(), state)
         return {"result": "applied" if ok else "failed", "theme": slug, "error": error}
+
+
+def toggle_theme():
+    """Flip the theme on screen to the other period's, held until the next switch."""
+    with locked():
+        themes = list_themes()
+        raw = read_json(config_path())
+        if raw is None:
+            return {"result": "unconfigured"}
+
+        cfg = normalize_config(raw, themes)
+        lat, lon, _ = location(cfg)
+        now = datetime.now().astimezone()
+        kind, start, _ = current_period(cfg, now, lat, lon)
+        key = period_key(kind, start)
+
+        state = read_json(state_path()) or {}
+        shown = shown_kind(state, kind, key)
+        target = "dark" if shown == "light" else "light"
+        installed = {t["slug"] for t in themes}
+        slug = choose_theme(cfg, target, pick_key(target, kind, key), state, installed)
+        ok, error = apply_theme(slug)
+        if ok:
+            state["override"] = {"key": key, "kind": target}
+            state["applied"] = {"key": key, "theme": slug, "at": now.isoformat()}
+        state["error"] = None if ok else error
+        write_json(state_path(), state)
+        return {
+            "result": "toggled" if ok else "failed",
+            "shown": target if ok else shown,
+            "theme": slug,
+            "error": error,
+        }
 
 
 def save_config(payload):
@@ -344,13 +392,14 @@ def status():
     key = period_key(kind, start)
 
     state = read_json(state_path()) or {}
+    shown = shown_kind(state, kind, key)
     scheduled = None
     if raw is not None:
         with locked():
             state = read_json(state_path()) or {}
             before = json.dumps(state, sort_keys=True)
             installed = {t["slug"] for t in themes}
-            scheduled = choose_theme(cfg, kind, key, state, installed)
+            scheduled = choose_theme(cfg, shown, pick_key(shown, kind, key), state, installed)
             if json.dumps(state, sort_keys=True) != before:
                 write_json(state_path(), state)
 
@@ -359,7 +408,8 @@ def status():
         "config": cfg,
         "themes": themes,
         "location": {"latitude": lat, "longitude": lon, "source": source},
-        "period": {"kind": kind, "since": start.isoformat()},
+        "period": {"kind": shown, "since": start.isoformat()},
+        "manual": shown != kind,
         "next": {"kind": upcoming[1], "at": upcoming[0].isoformat()} if upcoming else None,
         "today": {kind_name: when.isoformat() for when, kind_name in day_events(cfg, now.date(), lat, lon)},
         "scheduled": scheduled,
@@ -385,6 +435,8 @@ def main(argv):
         output = save_config(argv[2])
     elif command == "tick":
         output = run_tick()
+    elif command == "toggle":
+        output = toggle_theme()
     elif command == "apply":
         output = apply_now(argv[2] if len(argv) > 2 else None)
     else:
