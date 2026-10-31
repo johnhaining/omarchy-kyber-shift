@@ -59,8 +59,36 @@ Panel {
     return kind === "light" ? "Light" : "Dark"
   }
 
+  // Sunrise and sunset when the schedule follows the sun, otherwise the two clock times.
+  function transitionName(kind) {
+    if (config.schedule === "sun") return kind === "light" ? "Sunrise" : "Sunset"
+    return kind === "light" ? "Light" : "Dark"
+  }
+
   function clockText(iso) {
     return Qt.formatTime(new Date(iso), "HH:mm")
+  }
+
+  // "2h 14m" or "9m" until the given instant. Reads clockNow so it re-evaluates each tick.
+  function countdownText(iso) {
+    var minutes = Math.max(0, Math.ceil((new Date(iso).getTime() - clockNow) / 60000))
+    var hours = Math.floor(minutes / 60)
+    var rest = minutes % 60
+    return hours > 0 ? hours + "h " + rest + "m" : rest + "m"
+  }
+
+  property real clockNow: Date.now()
+
+  Timer {
+    id: countdownTick
+    interval: 15000
+    running: true
+    repeat: true
+    onTriggered: {
+      root.clockNow = Date.now()
+      // Past the switch: pull fresh status so the next transition is shown.
+      if (root.status && root.status.next && new Date(root.status.next.at).getTime() <= root.clockNow) root.refresh()
+    }
   }
 
   function saveSettings(patch) {
@@ -182,6 +210,31 @@ Panel {
         font.pixelSize: Style.font.caption
         text: root.configured && root.status.next
           ? "Switches to " + root.periodLabel(root.status.next.kind).toLowerCase() + " at " + root.clockText(root.status.next.at)
+          : ""
+      }
+
+      Text {
+        visible: root.configured && root.status.today !== undefined
+        width: parent.width
+        wrapMode: Text.WordWrap
+        color: Commons.Color.popups.text
+        font.family: Style.font.family
+        font.pixelSize: Style.font.bodySmall
+        text: root.configured && root.status.today
+          ? root.transitionName("light") + " " + root.clockText(root.status.today.light)
+            + "  ·  " + root.transitionName("dark") + " " + root.clockText(root.status.today.dark)
+          : ""
+      }
+
+      Text {
+        visible: root.configured && root.status.next !== null
+        width: parent.width
+        font.family: Style.font.family
+        font.pixelSize: Style.font.subtitle
+        font.bold: true
+        color: Commons.Color.accent
+        text: root.configured && root.status.next
+          ? root.transitionName(root.status.next.kind) + " in " + root.countdownText(root.status.next.at)
           : ""
       }
 

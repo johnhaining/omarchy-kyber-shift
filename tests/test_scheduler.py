@@ -225,6 +225,7 @@ class ConfigTests(SandboxCase):
         self.assertEqual(modes["tokyo-night"], "dark")
         self.assertTrue(result["configured"])
         self.assertIn("next", result)
+        self.assertEqual(set(result["today"]), {"light", "dark"})
 
 
 if __name__ == "__main__":

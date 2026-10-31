@@ -361,6 +361,7 @@ def status():
         "location": {"latitude": lat, "longitude": lon, "source": source},
         "period": {"kind": kind, "since": start.isoformat()},
         "next": {"kind": upcoming[1], "at": upcoming[0].isoformat()} if upcoming else None,
+        "today": {kind_name: when.isoformat() for when, kind_name in day_events(cfg, now.date(), lat, lon)},
         "scheduled": scheduled,
         "applied": state.get("applied"),
         "error": state.get("error"),
