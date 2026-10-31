@@ -200,7 +200,7 @@ Panel {
       spacing: Style.space(8)
 
       Text {
-        text: "Theme schedule"
+        text: "Kyber Shift"
         color: Commons.Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Style.font.body
