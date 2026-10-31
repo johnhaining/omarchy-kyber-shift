@@ -90,3 +90,7 @@ MIT. See [LICENSE](LICENSE).
 - Sunrise and sunset come from the NOAA solar equations, accurate to within a couple of minutes.
 - Near the poles, where the sun does not rise or set on some days, that day falls back to the fixed times.
 - Light or dark is read from `mode` in each theme's `colors.toml`. A theme without that line is treated as dark.
+
+## Known issues
+
+- **Websites with their own appearance setting (for example YouTube) do not switch live.** Kyber Shift sets the system light/dark preference, but a site with its own Appearance setting only reads it when the page loads or refreshes. Kyber Shift does not reload pages. Check that the site's Appearance is set to *Device theme* (or *System*), then refresh the page after a switch.
