@@ -288,7 +288,7 @@ Panel {
         Text {
           id: clockLabel
           x: sky.glyphX - width / 2
-          y: sky.glyphY - height - Style.space(2)
+          y: sky.glyphY - height - Style.space(6)
           text: Qt.formatTime(new Date(root.clockNow), "HH:mm")
           color: Commons.Color.popups.text
           font.family: Style.font.family
