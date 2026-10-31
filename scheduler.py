@@ -7,7 +7,7 @@ and `apply`. Standard library only.
   scheduler.py status          JSON for the picker: settings, themes, next switch
   scheduler.py save <json>     store settings (does not change the theme)
   scheduler.py tick            apply the current period's theme if it has changed
-  scheduler.py apply           apply the current period's theme now
+  scheduler.py apply [json]    save settings if given, then apply the theme now
 """
 
 import fcntl
@@ -362,6 +362,15 @@ def status():
     }
 
 
+def apply_now(payload=None):
+    """Apply the current period's theme now, saving `payload` first if given."""
+    if payload is not None:
+        saved = save_config(payload)
+        if saved["result"] != "saved":
+            return saved
+    return run_tick(force=True)
+
+
 def main(argv):
     command = argv[1] if len(argv) > 1 else "status"
     if command == "status":
@@ -371,7 +380,7 @@ def main(argv):
     elif command == "tick":
         output = run_tick()
     elif command == "apply":
-        output = run_tick(force=True)
+        output = apply_now(argv[2] if len(argv) > 2 else None)
     else:
         print(__doc__.strip(), file=sys.stderr)
         return 2
