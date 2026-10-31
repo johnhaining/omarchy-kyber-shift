@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
 import qs.Commons
@@ -78,6 +79,22 @@ Panel {
   }
 
   property real clockNow: Date.now()
+
+  // Where we are between the start and end of the scheduled period, 0 to 1.
+  readonly property real arcProgress: {
+    if (!configured || !status.period || !status.next) return 0
+    var from = new Date(status.period.since).getTime()
+    var to = new Date(status.next.at).getTime()
+    return Math.min(1, Math.max(0, (clockNow - from) / (to - from)))
+  }
+
+  // Arc end labels: the period start on the left and its end on the right.
+  function edgeLabel(left) {
+    if (!configured || !status.period || !status.next) return ""
+    var nextKind = status.next.kind
+    if (left) return transitionName(nextKind === "light" ? "dark" : "light") + "\n" + clockText(status.period.since)
+    return transitionName(nextKind) + "\n" + clockText(status.next.at)
+  }
 
   Timer {
     id: countdownTick
@@ -231,17 +248,87 @@ Panel {
           : ""
       }
 
-      Text {
-        visible: root.configured && root.status.today !== undefined
+      // Day runs from sunrise on the left to sunset on the right. Night runs the
+      // other way, from sunset to sunrise, so the moon always travels toward morning.
+      Item {
+        id: sky
         width: parent.width
-        wrapMode: Text.WordWrap
-        color: Commons.Color.popups.text
-        font.family: Style.font.family
-        font.pixelSize: Style.font.bodySmall
-        text: root.configured && root.status.today
-          ? root.transitionName("light") + " " + root.clockText(root.status.today.light)
-            + "  ·  " + root.transitionName("dark") + " " + root.clockText(root.status.today.dark)
-          : ""
+        height: Style.space(90)
+        visible: root.configured && root.status.period !== undefined
+
+        readonly property real margin: Style.space(34)
+        readonly property real arcHeight: Style.space(42)
+        readonly property real horizon: height - Style.space(24)
+        readonly property real glyphX: margin + root.arcProgress * (width - 2 * margin)
+        readonly property real glyphY: horizon - arcHeight * Math.sin(Math.PI * root.arcProgress)
+
+        Shape {
+          anchors.fill: parent
+          preferredRendererType: Shape.CurveRenderer
+
+          ShapePath {
+            strokeColor: Qt.darker(Commons.Color.popups.text, 1.6)
+            strokeWidth: 1
+            fillColor: "transparent"
+            strokeStyle: ShapePath.DashLine
+            dashPattern: [4, 4]
+            startX: sky.margin
+            startY: sky.horizon
+
+            PathArc {
+              x: sky.width - sky.margin
+              y: sky.horizon
+              radiusX: (sky.width - 2 * sky.margin) / 2
+              radiusY: sky.arcHeight
+              direction: PathArc.Counterclockwise
+            }
+          }
+        }
+
+        Text {
+          id: clockLabel
+          x: sky.glyphX - width / 2
+          y: sky.glyphY - height - Style.space(2)
+          text: Qt.formatTime(new Date(root.clockNow), "HH:mm")
+          color: Commons.Color.popups.text
+          font.family: Style.font.family
+          font.pixelSize: Style.font.bodySmall
+          font.bold: true
+          Behavior on x { NumberAnimation { duration: 900; easing.type: Easing.InOutQuad } }
+          Behavior on y { NumberAnimation { duration: 900; easing.type: Easing.InOutQuad } }
+        }
+
+        Text {
+          id: glyph
+          x: sky.glyphX - width / 2
+          y: sky.glyphY - height / 2
+          text: root.periodKind === "dark" ? "\uf186" : "\uf185"
+          font.family: root.bar ? root.bar.fontFamily : Style.font.family
+          font.pixelSize: Style.font.title
+          color: Commons.Color.accent
+          Behavior on x { NumberAnimation { duration: 900; easing.type: Easing.InOutQuad } }
+          Behavior on y { NumberAnimation { duration: 900; easing.type: Easing.InOutQuad } }
+        }
+
+        Text {
+          x: sky.margin - width / 2
+          y: sky.horizon + Style.space(4)
+          horizontalAlignment: Text.AlignHCenter
+          text: root.edgeLabel(true)
+          color: Qt.darker(Commons.Color.popups.text, 1.4)
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+        }
+
+        Text {
+          x: sky.width - sky.margin - width / 2
+          y: sky.horizon + Style.space(4)
+          horizontalAlignment: Text.AlignHCenter
+          text: root.edgeLabel(false)
+          color: Qt.darker(Commons.Color.popups.text, 1.4)
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+        }
       }
 
       Text {
