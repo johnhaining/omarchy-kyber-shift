@@ -220,6 +220,24 @@ class RandomModeTests(SandboxCase):
         self.assertEqual(scheduler.choose_theme(cfg, "dark", "k", {}, {"tokyo-night"}), "tokyo-night")
 
 
+class UninstallTests(SandboxCase):
+    def test_uninstall_removes_only_this_plugins_files(self):
+        self.write_config()
+        scheduler.run_tick()
+        bystander = Path(self.env["XDG_CONFIG_HOME"]) / "other-plugin" / "keep.json"
+        bystander.parent.mkdir(parents=True)
+        bystander.write_text("{}")
+
+        result = scheduler.uninstall()
+        self.assertEqual(result["result"], "removed")
+        self.assertFalse(scheduler.config_path().exists())
+        self.assertFalse(scheduler.state_path().exists())
+        self.assertTrue(bystander.exists())
+
+    def test_uninstall_when_nothing_is_there(self):
+        self.assertEqual(scheduler.uninstall(), {"result": "removed", "paths": []})
+
+
 class ConfigTests(SandboxCase):
     def test_save_normalizes_and_rejects_bad_values(self):
         result = scheduler.save_config(json.dumps({

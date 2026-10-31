@@ -2,6 +2,8 @@
 
 An [Omarchy](https://omarchy.org/) shell plugin that switches between a light and a dark theme automatically. The switch happens at sunrise and sunset, or at fixed times you choose. Each day you can either keep one fixed pair or let it draw a random theme from a pool.
 
+![The picker](preview.png)
+
 A sun icon in the top bar means the light theme is active, and a moon means the dark one is. Click the icon to open the picker.
 
 ## Install
@@ -51,6 +53,17 @@ o.bind("SUPER + ALT + L", "Toggle light/dark theme", "python3 ~/.config/omarchy/
 
 Then run `hyprctl reload` and `hyprctl configerrors`. Pick any free combination; `omarchy menu keybindings --print` lists the taken ones. The toggle holds until the next sunrise or sunset, the same as the button in the picker.
 
+## Uninstall
+
+Run this before `omarchy plugin remove`. It deletes the plugin's settings and state, and leaves everything else alone:
+
+```bash
+python3 ~/.config/omarchy/plugins/johnhaining.theme-scheduler/scheduler.py uninstall
+omarchy plugin remove johnhaining.theme-scheduler
+```
+
+Remove the `SUPER + ALT + L` line from `bindings.lua` as well, or it will point at a script that no longer exists. The theme you are using stays as it is.
+
 ## Command line
 
 The scheduler runs on its own, but you can call it directly:
@@ -67,6 +80,10 @@ python3 -m unittest discover -s tests
 ```
 
 The tests use a temporary home directory and a fake `omarchy`, so they never change your theme. Set `OMARCHY_CMD` to point the scheduler at another command.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Notes
 

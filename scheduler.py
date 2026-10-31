@@ -9,6 +9,7 @@ and `apply`. Standard library only.
   scheduler.py tick            apply the current period's theme if it has changed
   scheduler.py apply [json]    save settings if given, then apply the theme now
   scheduler.py toggle          switch to the other period's theme until the next switch
+  scheduler.py uninstall       delete this plugin's config and state
 """
 
 import fcntl
@@ -17,6 +18,7 @@ import math
 import os
 import random
 import re
+import shutil
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -427,6 +429,16 @@ def apply_now(payload=None):
     return run_tick(force=True)
 
 
+def uninstall():
+    """Delete this plugin's config and state. Run before `omarchy plugin remove`."""
+    removed = []
+    for path in (config_path().parent, state_path().parent):
+        if path.is_dir():
+            shutil.rmtree(path)
+            removed.append(str(path))
+    return {"result": "removed", "paths": removed}
+
+
 def main(argv):
     command = argv[1] if len(argv) > 1 else "status"
     if command == "status":
@@ -437,6 +449,8 @@ def main(argv):
         output = run_tick()
     elif command == "toggle":
         output = toggle_theme()
+    elif command == "uninstall":
+        output = uninstall()
     elif command == "apply":
         output = apply_now(argv[2] if len(argv) > 2 else None)
     else:
