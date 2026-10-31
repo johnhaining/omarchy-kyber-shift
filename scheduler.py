@@ -348,9 +348,11 @@ def status():
     if raw is not None:
         with locked():
             state = read_json(state_path()) or {}
+            before = json.dumps(state, sort_keys=True)
             installed = {t["slug"] for t in themes}
             scheduled = choose_theme(cfg, kind, key, state, installed)
-            write_json(state_path(), state)
+            if json.dumps(state, sort_keys=True) != before:
+                write_json(state_path(), state)
 
     return {
         "configured": raw is not None,

@@ -92,9 +92,11 @@ Panel {
     return isNaN(value) ? null : value
   }
 
+  // Always on: the bar icon reads the period from here, so it must flip at
+  // sunset even when the picker is closed.
   Timer {
     interval: 30000
-    running: root.opened
+    running: true
     repeat: true
     triggeredOnStart: true
     onTriggered: root.refresh()
