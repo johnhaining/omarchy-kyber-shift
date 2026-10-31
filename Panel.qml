@@ -280,7 +280,7 @@ Panel {
               y: sky.horizon
               radiusX: (sky.width - 2 * sky.margin) / 2
               radiusY: sky.arcHeight
-              direction: PathArc.Counterclockwise
+              direction: PathArc.Clockwise
             }
           }
         }
