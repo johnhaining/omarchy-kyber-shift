@@ -343,11 +343,14 @@ def status():
     kind, start, upcoming = current_period(cfg, now, lat, lon)
     key = period_key(kind, start)
 
-    with locked():
-        state = read_json(state_path()) or {}
-        installed = {t["slug"] for t in themes}
-        scheduled = choose_theme(cfg, kind, key, state, installed) if raw is not None else None
-        write_json(state_path(), state)
+    state = read_json(state_path()) or {}
+    scheduled = None
+    if raw is not None:
+        with locked():
+            state = read_json(state_path()) or {}
+            installed = {t["slug"] for t in themes}
+            scheduled = choose_theme(cfg, kind, key, state, installed)
+            write_json(state_path(), state)
 
     return {
         "configured": raw is not None,

@@ -211,6 +211,12 @@ class ConfigTests(SandboxCase):
         cfg = scheduler.normalize_config({}, [])
         self.assertEqual(scheduler.location(cfg), (24.4539, 54.3773, "weather"))
 
+    def test_status_does_not_write_state_until_configured(self):
+        result = scheduler.status()
+        self.assertFalse(result["configured"])
+        self.assertIsNone(result["scheduled"])
+        self.assertFalse(scheduler.state_path().exists())
+
     def test_status_lists_themes_with_modes(self):
         self.write_config()
         result = scheduler.status()
